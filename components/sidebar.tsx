@@ -98,6 +98,11 @@ export function Sidebar({ className }: SidebarProps) {
       icon: <FileText className="h-5 w-5" />,
     },
     {
+      href: '/chatbot',
+      title: 'AI Assistant',
+      icon: <MessageCircle className="h-5 w-5" />,
+    },
+    {
       href: '/admin',
       title: 'Admin Panel',
       icon: <ShieldCheck className="h-5 w-5" />,

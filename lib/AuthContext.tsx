@@ -120,6 +120,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setUser(mockUser);
     setIsAdmin(true);
     setIsLoading(false);
+    
+    // Ensure admin status is stored in localStorage for quick access
+    try {
+      // Store or update admin status in localStorage
+      const authState = {
+        user: mockUser,
+        isAdmin: true,
+        session: { 
+          access_token: 'mock_access_token_' + Date.now(), 
+          expires_at: Math.floor(Date.now() / 1000) + 86400, // 24 hours from now
+          refresh_token: 'mock_refresh_token_' + Date.now()
+        }
+      };
+      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authState));
+      console.log('Stored admin credentials in localStorage for quick access');
+    } catch (error) {
+      console.error("Error storing admin credentials:", error);
+    }
   };
   
   // Use the new createBrowserClient instead of createClientComponentClient

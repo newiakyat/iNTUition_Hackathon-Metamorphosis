@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Assistant Widget</title>
+  <!-- Add marked.js for markdown parsing -->
+  <script src="https://cdn.jsdelivr.net/npm/marked@4.3.0/marked.min.js"></script>
+  <style>
+    :root {
+      --background: hsl(0 0% 100%);
+      --foreground: hsl(0 0% 3.9%);
+      --card: hsl(0 0% 100%);
+      --card-foreground: hsl(0 0% 3.9%);
+      --popover: hsl(0 0% 100%);
+      --popover-foreground: hsl(0 0% 3.9%);
+      --primary: hsl(0 0% 9%);
+      --primary-foreground: hsl(0 0% 98%);
+      --secondary: hsl(0 0% 96.1%);
+      --secondary-foreground: hsl(0 0% 9%);
+      --muted: hsl(0 0% 96.1%);
+      --muted-foreground: hsl(0 0% 45.1%);
+      --accent: hsl(0 0% 96.1%);
+      --accent-foreground: hsl(0 0% 9%);
+      --destructive: hsl(0 84.2% 60.2%);
+      --destructive-foreground: hsl(0 0% 98%);
+      --border: hsl(0 0% 89.8%);
+      --input: hsl(0 0% 89.8%);
+      --ring: hsl(0 0% 3.9%);
+      --radius: 0.5rem;
+
+      /* Theme colors */
+      --management-color: #007bff;
+      --planning-color: #6a24cd;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --background: hsl(0 0% 3.9%);
+        --foreground: hsl(0 0% 98%);
+        --card: hsl(0 0% 3.9%);
+        --card-foreground: hsl(0 0% 98%);
+        --popover: hsl(0 0% 3.9%);
+        --popover-foreground: hsl(0 0% 98%);
+        --primary: hsl(0 0% 98%);
+        --primary-foreground: hsl(0 0% 9%);
+        --secondary: hsl(0 0% 14.9%);
+        --secondary-foreground: hsl(0 0% 98%);
+        --muted: hsl(0 0% 14.9%);
+        --muted-foreground: hsl(0 0% 63.9%);
+        --accent: hsl(0 0% 14.9%);
+        --accent-foreground: hsl(0 0% 98%);
+        --destructive: hsl(0 62.8% 30.6%);
+        --destructive-foreground: hsl(0 0% 98%);
+        --border: hsl(0 0% 14.9%);
+        --input: hsl(0 0% 14.9%);
+        --ring: hsl(0 0% 83.1%);
+      }
+    }
+
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--background);
+      color: var(--foreground);
+    }
+    
+    .chat-container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      max-height: 100vh;
+      overflow: hidden;
+      background-color: var(--background);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      border-radius: var(--radius);
+    }
+    
+    .chat-header {
+      background-color: var(--management-color);
+      color: white;
+      padding: 14px 18px;
+      font-size: 16px;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top-left-radius: var(--radius);
+      border-top-right-radius: var(--radius);
+    }
+    
+    .assistant-badge {
+      background-color: rgba(255, 255, 255, 0.2);
+      padding: 4px 10px;
+      border-radius: 16px;
+      font-size: 12px;
+      font-weight: 500;
+      backdrop-filter: blur(8px);
+    }
+    
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      background-color: var(--background);
+    }
+    
+    .message {
+      max-width: 80%;
+      padding: 14px 18px;
+      line-height: 1.5;
+      border-radius: 16px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+      transition: all 0.2s ease;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .message.user {
+      background-color: var(--secondary);
+      color: var(--secondary-foreground);
+      align-self: flex-end;
+      border-bottom-right-radius: 4px;
+    }
+    
+    .message.assistant {
+      background-color: var(--management-color);
+      color: white;
+      align-self: flex-start;
+      border-bottom-left-radius: 4px;
+    }
+    
+    /* Markdown styling */
+    .message.assistant a {
+      color: white;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    
+    .message.assistant code {
+      background-color: rgba(255, 255, 255, 0.2);
+      padding: 2px 4px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.9em;
+    }
+    
+    .message.assistant pre {
+      background-color: rgba(255, 255, 255, 0.1);
+      padding: 10px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 10px 0;
+    }
+    
+    .message.assistant pre code {
+      background-color: transparent;
+      padding: 0;
+      font-family: 'Courier New', monospace;
+      color: white;
+      display: block;
+    }
+    
+    .message.assistant ul, .message.assistant ol {
+      padding-left: 20px;
+      margin: 8px 0;
+    }
+    
+    .message.assistant h1, .message.assistant h2, .message.assistant h3, 
+    .message.assistant h4, .message.assistant h5, .message.assistant h6 {
+      margin: 12px 0 8px 0;
+      font-weight: 600;
+      line-height: 1.2;
+    }
+    
+    .message.assistant h1 { font-size: 1.4em; }
+    .message.assistant h2 { font-size: 1.3em; }
+    .message.assistant h3 { font-size: 1.2em; }
+    .message.assistant h4 { font-size: 1.1em; }
+    .message.assistant h5, .message.assistant h6 { font-size: 1em; }
+    
+    .message.assistant p {
+      margin: 8px 0;
+    }
+    
+    .message.assistant table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 10px 0;
+      font-size: 0.9em;
+    }
+    
+    .message.assistant th, .message.assistant td {
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 6px 10px;
+      text-align: left;
+    }
+    
+    .message.assistant th {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .chat-input {
+      display: flex;
+      padding: 12px 16px;
+      border-top: 1px solid var(--border);
+      background-color: var(--background);
+      border-bottom-left-radius: var(--radius);
+      border-bottom-right-radius: var(--radius);
+    }
+    
+    .chat-input input {
+      flex: 1;
+      padding: 14px 16px;
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      font-size: 14px;
+      outline: none;
+      background-color: var(--background);
+      color: var(--foreground);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    
+    .chat-input input:focus {
+      border-color: var(--ring);
+      box-shadow: 0 0 0 1px var(--ring);
+    }
+    
+    .chat-input button {
+      margin-left: 8px;
+      padding: 0 18px;
+      background-color: var(--management-color);
+      color: white;
+      border: none;
+      border-radius: 24px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      outline: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .chat-input button:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+    
+    .chat-input button:active {
+      transform: translateY(1px);
+    }
+    
+    .typing-indicator {
+      align-self: flex-start;
+      background-color: var(--muted);
+      padding: 12px 16px;
+      border-radius: 16px;
+      border-bottom-left-radius: 4px;
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+    
+    .dot {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background-color: var(--muted-foreground);
+      animation: wave 1.3s linear infinite;
+      margin-right: 2px;
+    }
+    
+    .dot:nth-child(2) {
+      animation-delay: -1.1s;
+    }
+    
+    .dot:nth-child(3) {
+      animation-delay: -0.9s;
+    }
+    
+    @keyframes wave {
+      0%, 60%, 100% {
+        transform: initial;
+      }
+      30% {
+        transform: translateY(-5px);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="chat-container">
+    <div class="chat-header">
+      <span id="assistant-title">Admin Assistant</span>
+      <span id="assistant-badge" class="assistant-badge">Change Planning</span>
+    </div>
+    <div id="chat-messages" class="chat-messages">
+      <div class="message assistant">
+        Hello, I'm your assistant. How can I help you today?
+      </div>
+      <div class="typing-indicator" id="typing-indicator">
+        <span class="dot"></span>
+        <span class="dot"></span>
+        <span class="dot"></span>
+      </div>
+    </div>
+    <div class="chat-input">
+      <input 
+        type="text" 
+        id="user-input" 
+        placeholder="Type your message..." 
+        autocomplete="off"
+      >
+      <button id="send-button">Send</button>
+    </div>
+  </div>
+
+  <script>
+    // Configure marked.js
+    marked.setOptions({
+      breaks: true, // Convert \n to <br>
+      gfm: true, // Enable GitHub Flavored Markdown
+      headerIds: false, // Disable header IDs
+      mangle: false, // Disable character encoding
+      sanitize: false // Enable HTML tags in the output
+    });
+
+    // Widget configuration
+    let widgetConfig = {
+      streamResponses: true,
+      theme: 'light',
+      adminMode: true,
+      assistantType: 'changePlanning',
+    };
+
+    // Get DOM elements
+    const chatMessages = document.getElementById('chat-messages');
+    const userInput = document.getElementById('user-input');
+    const sendButton = document.getElementById('send-button');
+    const typingIndicator = document.getElementById('typing-indicator');
+    const assistantTitle = document.getElementById('assistant-title');
+    const assistantBadge = document.getElementById('assistant-badge');
+
+    // Listen for configuration messages from the parent window
+    window.addEventListener('message', (event) => {
+      if (event.data && event.data.type === 'INIT_WIDGET') {
+        console.log('Received widget initialization:', event.data);
+        widgetConfig = { ...widgetConfig, ...event.data.data };
+        
+        // Update UI based on assistant type
+        updateAssistantUI();
+      } else if (event.data && event.data.type === 'TEST_ASSISTANT_TYPE') {
+        console.log('Received test message:', event.data);
+        addMessage('What assistant are you?', 'user');
+        processMessage('What assistant are you?');
+      }
+    });
+
+    // Initialize widget UI based on URL parameters
+    function initializeFromUrl() {
+      const urlParams = new URLSearchParams(window.location.search);
+      
+      // Extract parameters from URL
+      const assistantTypeParam = urlParams.get('assistantType') || urlParams.get('type') || urlParams.get('assistant');
+      if (assistantTypeParam) {
+        widgetConfig.assistantType = assistantTypeParam;
+      }
+      
+      // Update UI after initializing from URL
+      updateAssistantUI();
+    }
+
+    // Update UI based on assistant type
+    function updateAssistantUI() {
+      // Set assistant title and badge based on assistant type
+      if (widgetConfig.assistantType === 'changePlanning') {
+        assistantTitle.textContent = 'Change Planning Assistant';
+        assistantBadge.textContent = 'Planning';
+        document.querySelector('.chat-header').style.backgroundColor = 'var(--planning-color)';
+        document.querySelectorAll('.message.assistant').forEach(el => {
+          el.style.backgroundColor = 'var(--planning-color)';
+        });
+        sendButton.style.backgroundColor = 'var(--planning-color)';
+      } else {
+        assistantTitle.textContent = 'Change Management Assistant';
+        assistantBadge.textContent = 'Management';
+        document.querySelector('.chat-header').style.backgroundColor = 'var(--management-color)';
+        document.querySelectorAll('.message.assistant').forEach(el => {
+          el.style.backgroundColor = 'var(--management-color)';
+        });
+        sendButton.style.backgroundColor = 'var(--management-color)';
+      }
+      
+      // Add data attribute for debugging
+      document.body.setAttribute('data-assistant-type', widgetConfig.assistantType);
+    }
+
+    // Add a message to the chat
+    function addMessage(text, sender) {
+      const messageElement = document.createElement('div');
+      messageElement.classList.add('message', sender);
+      
+      // Parse markdown for assistant messages
+      if (sender === 'assistant') {
+        messageElement.innerHTML = marked.parse(text);
+      } else {
+        messageElement.textContent = text;
+      }
+      
+      // Ensure assistant messages match the current theme
+      if (sender === 'assistant' && widgetConfig.assistantType === 'changePlanning') {
+        messageElement.style.backgroundColor = 'var(--planning-color)';
+      }
+      
+      // Insert before the typing indicator
+      chatMessages.insertBefore(messageElement, typingIndicator);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    // Process user message
+    function processMessage(message) {
+      if (!message.trim()) return;
+      
+      // Show typing indicator
+      typingIndicator.style.display = 'block';
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+      
+      // Simulate API call
+      setTimeout(() => {
+        // API endpoint with assistantType parameter
+        const apiUrl = '/api/chat';
+        
+        fetch(apiUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            message: message,
+            assistantType: widgetConfig.assistantType
+          })
+        })
+        .then(response => response.json())
+        .then(data => {
+          // Hide typing indicator
+          typingIndicator.style.display = 'none';
+          
+          // Add assistant response
+          addMessage(data.response, 'assistant');
+          
+          // Notify parent window of response
+          if (window.parent !== window) {
+            window.parent.postMessage({
+              type: 'STREAM_RESPONSE',
+              data: data.response
+            }, '*');
+          }
+        })
+        .catch(error => {
+          console.error('Error processing message:', error);
+          typingIndicator.style.display = 'none';
+          addMessage('Sorry, I encountered an error processing your request.', 'assistant');
+          
+          // Notify parent of error
+          if (window.parent !== window) {
+            window.parent.postMessage({
+              type: 'CONNECTION_ERROR',
+              data: error.message
+            }, '*');
+          }
+        });
+      }, 500);
+    }
+
+    // Event listeners
+    sendButton.addEventListener('click', () => {
+      const message = userInput.value;
+      if (message.trim()) {
+        addMessage(message, 'user');
+        userInput.value = '';
+        processMessage(message);
+      }
+    });
+
+    userInput.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        sendButton.click();
+      }
+    });
+
+    // Initialize on load
+    window.addEventListener('load', initializeFromUrl);
+  </script>
+</body>
+</html> 

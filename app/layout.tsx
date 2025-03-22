@@ -4,6 +4,8 @@ import { Inter } from 'next/font/google';
 import { ThemeProvider } from '@/components/theme-provider';
 import { AuthProvider } from '@/lib/AuthContext';
 import { Toaster } from '@/components/ui/toaster';
+import FloatingChatWidget from '@/components/FloatingChatWidget';
+import WidgetInitializer from '@/components/WidgetInitializer';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -27,7 +29,10 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AuthProvider>
+            <WidgetInitializer />
+            
             {children}
+            <FloatingChatWidget />
           </AuthProvider>
           <Toaster />
         </ThemeProvider>
