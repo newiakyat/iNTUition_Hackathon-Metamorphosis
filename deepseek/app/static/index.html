@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Change Management Assistants Demo</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f7fa;
+            color: #333;
+        }
+        
+        header {
+            background-color: #3c6382;
+            color: white;
+            padding: 1rem 2rem;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        main {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        
+        .widgets-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+        
+        .widget-section {
+            flex: 1;
+            min-width: 350px;
+            max-width: 600px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+        }
+        
+        .widget-section h2 {
+            color: #3c6382;
+            border-bottom: 1px solid #e1e8ed;
+            padding-bottom: 0.5rem;
+            margin-top: 0;
+        }
+        
+        .code-snippet {
+            background-color: #f1f5f9;
+            border-radius: 4px;
+            padding: 1rem;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            margin: 1rem 0;
+        }
+        
+        .note {
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 0.5rem 1rem;
+            margin: 1rem 0;
+            font-size: 14px;
+        }
+        
+        .admin-note {
+            background-color: #ffeaea;
+            border-left: 4px solid #f44336;
+            padding: 0.5rem 1rem;
+            margin: 1rem 0;
+            font-size: 14px;
+        }
+        
+        iframe {
+            width: 100%;
+            height: 550px;
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 3rem;
+            padding: 1rem;
+            background-color: #f1f5f9;
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Change Management Assistants</h1>
+        <p>RAG-powered AI assistants for navigating and planning organizational changes</p>
+    </header>
+    
+    <main>
+        <h2>Widget Demonstrations</h2>
+        <p>This page demonstrates the two AI assistant widgets integrated with FastAPI. You can embed these into your own website using the code snippets below.</p>
+        
+        <div class="widgets-container">
+            <section class="widget-section">
+                <h2>User Assistant Widget</h2>
+                <p>This widget uses the regular RAG chain to help employees navigate changes using the ADKAR model.</p>
+                
+                <div class="note">
+                    <strong>Note:</strong> This widget is accessible to all users without authentication.
+                </div>
+                
+                <h3>Widget Preview</h3>
+                <iframe src="user-widget.html" title="User Change Management Assistant"></iframe>
+                
+                <h3>How to Embed</h3>
+                <div class="code-snippet">
+                    <pre><code>&lt;iframe src="https://your-domain.com/widgets/user-widget.html" 
+        width="350" height="500" 
+        style="border: none; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);"
+        title="Change Management Assistant"&gt;
+&lt;/iframe&gt;</code></pre>
+                </div>
+            </section>
+            
+            <section class="widget-section">
+                <h2>Admin Assistant Widget</h2>
+                <p>This widget uses the change planning RAG chain to help managers create and evaluate change plans.</p>
+                
+                <div class="note">
+                    <strong>Note:</strong> This widget is now accessible to all users without authentication.
+                </div>
+                
+                <h3>Widget Preview</h3>
+                <iframe src="admin-widget.html" title="Admin Change Planning Assistant"></iframe>
+                
+                <h3>How to Embed</h3>
+                <div class="code-snippet">
+                    <pre><code>&lt;iframe src="https://your-domain.com/widgets/admin-widget.html" 
+        width="350" height="500" 
+        style="border: none; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);"
+        title="Change Planning Assistant (Admin)"&gt;
+&lt;/iframe&gt;</code></pre>
+                </div>
+            </section>
+        </div>
+        
+        <h2>Integration Instructions</h2>
+        <p>To integrate these widgets into your website:</p>
+        <ol>
+            <li>Deploy the FastAPI backend on your server or cloud provider</li>
+            <li>Update the API_URL in the widget HTML files to point to your deployed API</li>
+            <li>Host the widget HTML files on your web server</li>
+            <li>Embed the widgets in your website using the iframe code shown above</li>
+            <li>Customize the styling to match your website's design</li>
+        </ol>
+        
+        <div class="note">
+            <p><strong>Security Note:</strong> In production, make sure to:</p>
+            <ul>
+                <li>Use HTTPS for all communications</li>
+                <li>Set proper CORS policies on your API server</li>
+            </ul>
+        </div>
+    </main>
+    
+    <footer>
+        <p>Change Management Assistants © 2023 | Powered by DeepSeek AI and LangChain</p>
+    </footer>
+</body>
+</html> 

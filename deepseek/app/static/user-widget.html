@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Change Management Assistant</title>
+    <style>
+        :root {
+            --primary-color: #4a6fa5;
+            --secondary-color: #21b6a8;
+            --background-color: #f5f7fa;
+            --user-msg-color: #e3f2fd;
+            --bot-msg-color: #ffffff;
+            --border-color: #dbe1e8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .chat-widget {
+            width: 100%;
+            height: 100vh;
+            border-radius: 0;
+            box-shadow: none;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--background-color);
+            border: none;
+            resize: none;
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+        .chat-header {
+            background-color: var(--primary-color);
+            color: #fff;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-header h3 {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            margin-left: 10px;
+            font-size: 12px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+
+        .status-dot.initializing {
+            background-color: #ffc107;
+            animation: pulse 1.5s infinite;
+        }
+
+        .status-dot.ready {
+            background-color: #4caf50;
+        }
+
+        .status-dot.error {
+            background-color: #f44336;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+
+        .chat-body {
+            flex-grow: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 10px 12px;
+            margin-bottom: 10px;
+            border-radius: 12px;
+            word-wrap: break-word;
+        }
+
+        .user-message {
+            align-self: flex-end;
+            background-color: var(--user-msg-color);
+            border-bottom-right-radius: 4px;
+            font-weight: 500;
+        }
+
+        .bot-message {
+            align-self: flex-start;
+            background-color: var(--bot-msg-color);
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .chat-footer {
+            padding: 10px 15px;
+            background-color: #fff;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+        }
+
+        .chat-input {
+            flex-grow: 1;
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 8px 15px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .chat-input:focus {
+            border-color: var(--primary-color);
+        }
+
+        .send-button {
+            background-color: var(--primary-color);
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 38px;
+            height: 38px;
+            margin-left: 10px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background-color 0.2s;
+        }
+
+        .send-button:hover {
+            background-color: #3b5998;
+        }
+
+        .send-button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        .filter-options {
+            background-color: #fff;
+            border-top: 1px solid var(--border-color);
+            padding: 10px 15px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .filter-select {
+            flex-grow: 1;
+            padding: 6px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 12px;
+            outline: none;
+        }
+
+        .loader {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        .typing-indicator {
+            align-self: flex-start;
+            background-color: var(--bot-msg-color);
+            padding: 12px 16px;
+            border-radius: 12px;
+            border-bottom-left-radius: 4px;
+            margin-bottom: 10px;
+            display: none;
+        }
+
+        .typing-indicator span {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background-color: #ccc;
+            border-radius: 50%;
+            margin-right: 5px;
+            animation: typing 1.3s infinite;
+        }
+
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+            margin-right: 0;
+        }
+
+        @keyframes typing {
+            0%, 100% { transform: translateY(0px); background-color: #ccc; }
+            50% { transform: translateY(-5px); background-color: #999; }
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsiveness */
+        @media (max-width: 600px) {
+            .chat-widget {
+                width: 100%;
+                height: 100vh;
+                resize: none;
+                border-radius: 0;
+                max-width: 100%;
+                max-height: 100%;
+            }
+            .resize-handle {
+                display: none;
+            }
+        }
+
+        /* Streaming cursor animation */
+        .streaming-cursor {
+            display: inline-block;
+            width: 3px;
+            height: 15px;
+            background-color: #333;
+            animation: blink 1s infinite;
+            vertical-align: middle;
+            margin-left: 2px;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        /* Styles for markdown content */
+        .bot-message h1, .bot-message h2, .bot-message h3, .bot-message h4, .bot-message h5, .bot-message h6 {
+            margin-top: 1em;
+            margin-bottom: 0.5em;
+            font-weight: 600;
+            line-height: 1.25;
+        }
+        
+        .bot-message h1 {
+            font-size: 1.5em;
+            border-bottom: 1px solid #eaecef;
+            padding-bottom: 0.3em;
+        }
+        
+        .bot-message h2 {
+            font-size: 1.3em;
+            border-bottom: 1px solid #eaecef;
+            padding-bottom: 0.3em;
+        }
+        
+        .bot-message h3 {
+            font-size: 1.1em;
+        }
+        
+        .bot-message ul, .bot-message ol {
+            padding-left: 1.5em;
+            margin-bottom: 1em;
+        }
+        
+        .bot-message li {
+            margin-bottom: 0.3em;
+        }
+        
+        .bot-message p {
+            margin-bottom: 1em;
+        }
+        
+        .bot-message pre {
+            background-color: #f6f8fa;
+            border-radius: 3px;
+            padding: 12px;
+            overflow: auto;
+            margin-bottom: 1em;
+        }
+        
+        .bot-message code {
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+            background-color: rgba(27, 31, 35, 0.05);
+            border-radius: 3px;
+            padding: 0.2em 0.4em;
+            font-size: 85%;
+        }
+        
+        .bot-message pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        
+        .bot-message table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 1em;
+            overflow: auto;
+            display: block;
+        }
+        
+        .bot-message table th, .bot-message table td {
+            padding: 6px 13px;
+            border: 1px solid #dfe2e5;
+        }
+        
+        .bot-message table tr {
+            background-color: #fff;
+            border-top: 1px solid #c6cbd1;
+        }
+        
+        .bot-message table tr:nth-child(2n) {
+            background-color: #f6f8fa;
+        }
+        
+        .bot-message hr {
+            height: 0.25em;
+            border: 0;
+            background-color: #e1e4e8;
+            margin: 1.5em 0;
+        }
+        
+        .bot-message blockquote {
+            border-left: 0.25em solid #dfe2e5;
+            padding: 0 1em;
+            color: #6a737d;
+            margin-bottom: 1em;
+        }
+
+        /* Add resize handle styles */
+        .resize-handle {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            bottom: 0;
+            right: 0;
+            cursor: nwse-resize;
+            background: transparent;
+        }
+
+        /* Custom resize handle icon */
+        .resize-handle::after {
+            content: "";
+            position: absolute;
+            right: 3px;
+            bottom: 3px;
+            width: 10px;
+            height: 10px;
+            border-right: 2px solid rgba(0, 0, 0, 0.3);
+            border-bottom: 2px solid rgba(0, 0, 0, 0.3);
+        }
+    </style>
+    <!-- Add marked.js for markdown parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+    <div class="chat-widget" id="user-chat-widget">
+        <div class="chat-header">
+            <h3>Change Management Assistant</h3>
+            <div class="status-indicator">
+                <div class="status-dot initializing" id="status-dot"></div>
+                <span id="status-text">Initializing</span>
+            </div>
+        </div>
+        <div class="chat-body" id="chat-body">
+            <div class="message bot-message">
+                Hello! I'm your Change Management Assistant. How can I help you navigate organizational changes today?
+            </div>
+        </div>
+        <div class="typing-indicator" id="typing-indicator">
+            <span></span><span></span><span></span>
+        </div>
+        <div class="filter-options">
+            <select class="filter-select" id="resource-type">
+                <option value="">All Content Types</option>
+                <option value="training">Training</option>
+                <option value="guide">Guide</option>
+                <option value="faq">FAQ</option>
+                <option value="general">General</option>
+            </select>
+            <select class="filter-select" id="audience">
+                <option value="">All Roles</option>
+                <option value="all_employees">All Employees</option>
+                <option value="managers">Managers</option>
+                <option value="employees">Employees</option>
+                <option value="technical_staff">Technical Staff</option>
+            </select>
+        </div>
+        <div class="chat-footer">
+            <input type="text" class="chat-input" id="user-input" placeholder="Type your message...">
+            <button class="send-button" id="send-button">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M15.964.686a.5.5 0 0 0-.65-.65L.767 5.855H.766l-.452.18a.5.5 0 0 0-.082.887l.41.26.001.002 4.995 3.178 3.178 4.995.002.002.26.41a.5.5 0 0 0 .886-.083l6-15Zm-1.833 1.89L6.637 10.07l-.215-.338a.5.5 0 0 0-.154-.154l-.338-.215 7.494-7.494 1.178-.471-.47 1.178Z"/>
+                </svg>
+            </button>
+        </div>
+        <!-- Add resize handle -->
+        <div class="resize-handle" id="resize-handle"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Configuration
+            const API_URL = 'http://localhost:8000'; // Base URL without /api
+            const API_ENDPOINT = `${API_URL}/api`; // Endpoint prefix for API calls
+            const urlParams = new URLSearchParams(window.location.search);
+            const streamMode = urlParams.get('stream') === 'true';
+            
+            console.log(`Widget initializing with API_URL: ${API_URL}`);
+            console.log(`API endpoints will use: ${API_ENDPOINT}`);
+            
+            // State variables
+            let isInitialized = false;
+            let initializing = false;
+            
+            // DOM Elements
+            const chatBody = document.getElementById('chat-body');
+            const userInput = document.getElementById('user-input');
+            const sendButton = document.getElementById('send-button');
+            const resourceTypeSelect = document.getElementById('resource-type');
+            const audienceSelect = document.getElementById('audience');
+            const statusDot = document.getElementById('status-dot');
+            const statusText = document.getElementById('status-text');
+            const typingIndicator = document.getElementById('typing-indicator');
+            
+            // Event Listeners
+            sendButton.addEventListener('click', sendMessage);
+            userInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+            
+            // Check for and handle messages from parent window (if in iframe)
+            window.addEventListener('message', function(event) {
+                // Only process messages from allowed origins
+                if (event.origin === window.origin || event.origin === document.referrer.split('/').slice(0, 3).join('/')) {
+                    const { type, data } = event.data || {};
+                    
+                    if (type === 'INIT_WIDGET') {
+                        console.log('Received initialization message from parent:', data);
+                        
+                        // Check if streaming is enabled from parent
+                        if (data.streamResponses) {
+                            console.log('Streaming mode enabled by parent');
+                        }
+                        
+                        // Acknowledge receipt
+                        if (event.source) {
+                            event.source.postMessage({
+                                type: 'WIDGET_INITIALIZED',
+                                widgetType: 'user',
+                                status: 'ready'
+                            }, event.origin);
+                        }
+                    }
+                }
+            });
+            
+            // Initial setup
+            initializeWidget();
+            setupResizableWidget();
+            
+            async function initializeWidget() {
+                // Begin initialization
+                initializing = true;
+                updateStatusIndicator('initializing', 'Checking system status...');
+                
+                try {
+                    // Check API status
+                    const statusResponse = await fetch(`${API_ENDPOINT}/status`);
+                    if (!statusResponse.ok) {
+                        throw new Error('API not available');
+                    }
+                    
+                    // Just check the warmup status without triggering warmup
+                    const warmupStatus = await fetch(`${API_ENDPOINT}/warmup/status`);
+                    const warmupData = await warmupStatus.json();
+                    
+                    // Set initialization status based on warmup status response
+                    isInitialized = true;
+                    if (warmupData.status === 'ready') {
+                        updateStatusIndicator('ready', 'Ready');
+                    } else if (warmupData.status === 'warming_up') {
+                        updateStatusIndicator('initializing', warmupData.message || 'System is warming up...');
+                    } else {
+                        updateStatusIndicator('error', warmupData.message || 'System not ready');
+                    }
+                    
+                    console.log('Widget initialized, warmup status:', warmupData);
+                    
+                } catch (error) {
+                    console.error('Initialization error:', error);
+                    updateStatusIndicator('error', 'Error');
+                    addBotMessage('I encountered an issue while initializing. Please try refreshing the page.');
+                } finally {
+                    initializing = false;
+                    
+                    // Enable user input
+                    userInput.disabled = false;
+                    sendButton.disabled = false;
+                }
+            }
+            
+            function updateStatusIndicator(status, text) {
+                statusDot.className = 'status-dot ' + status;
+                statusText.textContent = text;
+            }
+            
+            function showTypingIndicator() {
+                typingIndicator.style.display = 'block';
+                chatBody.scrollTop = chatBody.scrollHeight;
+            }
+            
+            function hideTypingIndicator() {
+                typingIndicator.style.display = 'none';
+            }
+            
+            function sendMessage() {
+                const message = userInput.value.trim();
+                if (message === '') return;
+                
+                // Disable input while processing
+                setLoading(true);
+                
+                // Add user message to chat
+                addUserMessage(message);
+                
+                // Clear input field
+                userInput.value = '';
+                
+                // Prepare request data
+                const requestData = {
+                    message: message,
+                    resource_type: resourceTypeSelect.value,
+                    audience: audienceSelect.value
+                };
+                
+                // Process in streaming or regular mode
+                if (streamMode) {
+                    processStreamingRequest(requestData);
+                } else {
+                    processRegularRequest(requestData);
+                }
+            }
+            
+            function processStreamingRequest(requestData) {
+                showTypingIndicator();
+                
+                // Create a placeholder for the bot response
+                const responsePlaceholder = document.createElement('div');
+                responsePlaceholder.className = 'message bot-message';
+                responsePlaceholder.innerHTML = ''; // Empty initially
+                
+                // Create the streaming cursor
+                const streamingCursor = document.createElement('span');
+                streamingCursor.className = 'streaming-cursor';
+                responsePlaceholder.appendChild(streamingCursor);
+                
+                // Add the placeholder to the chat
+                chatBody.appendChild(responsePlaceholder);
+                scrollToBottom();
+
+                // Generate a unique ID for this request
+                const requestId = Date.now().toString();
+                
+                // First send the POST request to initiate the streaming response
+                fetch(`${API_ENDPOINT}/chat?stream=true`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestData)
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to start streaming request');
+                    }
+                    return response.json();  // Parse the JSON response
+                })
+                .then(data => {
+                    // Get the request ID from the server response
+                    const streamRequestId = data.request_id || requestId;
+                    console.log('Stream request initiated with ID:', streamRequestId);
+                    
+                    // After successful POST, create EventSource to listen for streamed response
+                    const streamUrl = `${API_ENDPOINT}/chat/stream?request_id=${streamRequestId}&stream=true`;
+                    console.log('Connecting to stream URL:', streamUrl);
+                    const eventSource = new EventSource(streamUrl);
+                    
+                    let accumulatedResponse = '';
+                    
+                    eventSource.onopen = function() {
+                        console.log('Stream connection opened successfully');
+                        hideTypingIndicator();
+                    };
+                    
+                    eventSource.onmessage = function(event) {
+                        try {
+                            const data = JSON.parse(event.data);
+                            
+                            // Handle heartbeat messages
+                            if (data.heartbeat || data.keep_alive) {
+                                console.log('Received heartbeat/keep-alive from server');
+                                return;
+                            }
+                            
+                            if (data.error) {
+                                // Handle error
+                                console.error('Streaming error:', data.error);
+                                responsePlaceholder.textContent = 'Sorry, there was an error generating a response: ' + data.error;
+                                eventSource.close();
+                                setLoading(false);
+                                
+                                // Notify parent window if in iframe
+                                if (window !== window.parent) {
+                                    window.parent.postMessage({
+                                        type: 'CONNECTION_ERROR',
+                                        data: {
+                                            error: data.error
+                                        }
+                                    }, '*');
+                                }
+                                return;
+                            }
+                            
+                            if (data.end) {
+                                // End of stream
+                                streamingCursor.remove();
+                                eventSource.close();
+                                setLoading(false);
+                                
+                                // Notify parent window if in iframe
+                                if (window !== window.parent) {
+                                    window.parent.postMessage({
+                                        type: 'STREAM_RESPONSE',
+                                        data: {
+                                            text: accumulatedResponse,
+                                            end: true
+                                        }
+                                    }, '*');
+                                }
+                                return;
+                            }
+                            
+                            // Append new text
+                            if (data.text) {
+                                accumulatedResponse += data.text;
+                                
+                                // Use marked.js to parse markdown in streaming response
+                                try {
+                                    responsePlaceholder.innerHTML = marked.parse(accumulatedResponse);
+                                } catch (error) {
+                                    // Fallback to plain text if parsing fails
+                                    responsePlaceholder.textContent = accumulatedResponse;
+                                }
+                                
+                                // Add back the cursor at the end
+                                responsePlaceholder.appendChild(streamingCursor);
+                                
+                                // Notify parent window if in iframe
+                                if (window !== window.parent) {
+                                    window.parent.postMessage({
+                                        type: 'STREAM_RESPONSE',
+                                        data: {
+                                            text: data.text,
+                                            chunk: true
+                                        }
+                                    }, '*');
+                                }
+                            }
+                            
+                            scrollToBottom();
+                        } catch (error) {
+                            console.error('Error processing stream chunk:', error);
+                        }
+                    };
+                    
+                    eventSource.onerror = function(error) {
+                        console.error('EventSource error:', error);
+                        eventSource.close();
+                        hideTypingIndicator();
+                        
+                        // If we don't have any response yet, show an error
+                        if (!accumulatedResponse) {
+                            let errorMsg = 'Sorry, there was an error connecting to the server.';
+                            
+                            // Add more debugging info
+                            if (error && error.message) {
+                                errorMsg += ' Error details: ' + error.message;
+                            }
+                            
+                            // Check if the server is available
+                            fetch(`${API_ENDPOINT}/status`, { 
+                                method: 'GET',
+                                headers: { 'Accept': 'application/json' },
+                                signal: AbortSignal.timeout(3000)
+                            })
+                            .then(response => {
+                                if (!response.ok) {
+                                    errorMsg += ' (Server status check failed)';
+                                } else {
+                                    errorMsg += ' (Server is available but stream failed)';
+                                    console.log('Server status check passed, but stream failed. Response:', response);
+                                    console.log('EventSource URL that failed:', streamUrl);
+                                }
+                                responsePlaceholder.textContent = errorMsg;
+                            })
+                            .catch(e => {
+                                errorMsg += ' (Server unreachable: ' + e.message + ')';
+                                responsePlaceholder.textContent = errorMsg;
+                            });
+                        }
+                        
+                        // Remove the cursor
+                        streamingCursor.remove();
+                        
+                        setLoading(false);
+                        scrollToBottom();
+                    };
+                })
+                .catch(error => {
+                    console.error('Error initiating streaming request:', error);
+                    hideTypingIndicator();
+                    responsePlaceholder.textContent = 'Sorry, there was an error processing your request.';
+                    setLoading(false);
+                    scrollToBottom();
+                });
+            }
+            
+            function processRegularRequest(requestData) {
+                // Show typing indicator for non-streaming requests
+                showTypingIndicator();
+                
+                // Use regular fetch for non-streaming
+                fetch(`${API_ENDPOINT}/chat`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestData)
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('API request failed');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    hideTypingIndicator();
+                    addBotMessage(data.response);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    hideTypingIndicator();
+                    addBotMessage('Sorry, there was an error processing your request.');
+                })
+                .finally(() => {
+                    setLoading(false);
+                });
+            }
+            
+            function addUserMessage(message) {
+                const messageEl = document.createElement('div');
+                messageEl.className = 'message user-message';
+                messageEl.textContent = message;
+                chatBody.appendChild(messageEl);
+                scrollToBottom();
+            }
+            
+            function addBotMessage(message) {
+                const messageEl = document.createElement('div');
+                messageEl.className = 'message bot-message';
+                
+                // Use marked.js to parse markdown content
+                try {
+                    // Configure marked options
+                    marked.setOptions({
+                        breaks: true,          // Enable line breaks
+                        gfm: true,             // Enable GitHub flavored markdown
+                        headerIds: false,      // Disable header IDs to prevent XSS
+                        mangle: false,         // Disable mangle to prevent XSS
+                        sanitize: false        // HTML sanitizing is handled by DOMPurify
+                    });
+                    
+                    // Parse markdown to HTML
+                    messageEl.innerHTML = marked.parse(message);
+                } catch (error) {
+                    // Fallback to plain text if markdown parsing fails
+                    console.error('Error parsing markdown:', error);
+                    messageEl.textContent = message;
+                }
+                
+                chatBody.appendChild(messageEl);
+                scrollToBottom();
+            }
+            
+            function setLoading(isLoading) {
+                userInput.disabled = isLoading;
+                sendButton.disabled = isLoading;
+                
+                if (isLoading) {
+                    sendButton.innerHTML = '<span class="loader"></span>';
+                } else {
+                    sendButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M15.964.686a.5.5 0 0 0-.65-.65L.767 5.855H.766l-.452.18a.5.5 0 0 0-.082.887l.41.26.001.002 4.995 3.178 3.178 4.995.002.002.26.41a.5.5 0 0 0 .886-.083l6-15Zm-1.833 1.89L6.637 10.07l-.215-.338a.5.5 0 0 0-.154-.154l-.338-.215 7.494-7.494 1.178-.471-.47 1.178Z"/></svg>';
+                }
+            }
+            
+            function scrollToBottom() {
+                chatBody.scrollTop = chatBody.scrollHeight;
+            }
+
+            // Function to set up resizable functionality
+            function setupResizableWidget() {
+                // Since we're using full-screen mode, disable the resize functionality
+                const resizeHandle = document.getElementById('resize-handle');
+                if (resizeHandle) {
+                    resizeHandle.style.display = 'none';
+                }
+                
+                // Handle window resize to ensure proper display
+                window.addEventListener('resize', () => {
+                    scrollToBottom();
+                });
+            }
+        });
+    </script>
+</body>
+</html> 
