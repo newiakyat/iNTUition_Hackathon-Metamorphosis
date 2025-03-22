@@ -1,3 +1,2 @@
 # Auto detect text files and perform LF normalization
 * text=auto
-Ollama[[:space:]]Chatbot/adkar_qwen_model/adapter_model.safetensors filter=lfs diff=lfs merge=lfs -text
