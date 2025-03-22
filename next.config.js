@@ -10,13 +10,7 @@ const nextConfig = {
   },
   typescript: {
     ignoreBuildErrors: true
-  },
-  experimental: {
-    serverActions: {
-      // Increase server actions timeout
-      bodySizeLimit: '1mb',
-    },
-  },
+  }
 };
 
 module.exports = nextConfig;

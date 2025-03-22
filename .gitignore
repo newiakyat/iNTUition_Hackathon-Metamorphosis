@@ -11,7 +11,6 @@
 # next.js
 /.next/
 /out/
-.next
 
 # production
 /build
@@ -34,25 +33,3 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-
-# Large model files
-*.bin
-*.onnx
-*.pt
-*.pth
-*.safetensors
-
-# Ollama model data
-*.tar
-*.gguf
-/models/
-/Ollama Chatbot/adkar_qwen_model/
-
-# Other large files
-*.zip
-*.gz
-*.bz2
-*.7z
-*.rar
-*.mp4
-*.mov
