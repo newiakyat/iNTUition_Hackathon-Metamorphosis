@@ -49,6 +49,22 @@ export function ProjectCard({ project }: ProjectProps) {
     }
   };
 
+  // Function to get priority color
+  const getPriorityColor = (priority?: string) => {
+    switch (priority?.toLowerCase()) {
+      case 'critical':
+        return 'bg-red-500';
+      case 'high':
+        return 'bg-orange-500';
+      case 'medium':
+        return 'bg-yellow-500';
+      case 'low':
+        return 'bg-green-500';
+      default:
+        return 'bg-gray-500';
+    }
+  };
+
   // Check if user has access to this project
   const checkAccess = () => {
     // Admin always has access
@@ -123,14 +139,12 @@ export function ProjectCard({ project }: ProjectProps) {
             {project.priority && (
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Priority:</span>
-                <span>{project.priority}</span>
+                <div className="flex items-center">
+                  <div className={`w-2 h-2 rounded-full mr-1.5 ${getPriorityColor(project.priority)}`}></div>
+                  <span>{project.priority}</span>
+                </div>
               </div>
             )}
-            
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Progress:</span>
-              <span>{project.progress}%</span>
-            </div>
             
             {project.allowedDepartments && project.allowedDepartments.length > 0 && (
               <div className="flex justify-between text-sm">
@@ -140,16 +154,17 @@ export function ProjectCard({ project }: ProjectProps) {
                 </span>
               </div>
             )}
+            
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Progress:</span>
+              <span>{project.progress}%</span>
+            </div>
           </div>
 
           {/* Progress bar */}
-          <div className="w-full bg-muted rounded-full h-2 mt-4 overflow-hidden">
+          <div className="w-full bg-white rounded-full h-2 mt-4 overflow-hidden border border-black">
             <div 
-              className={`h-full ${
-                project.progress > 66 ? 'bg-green-500' : 
-                project.progress > 33 ? 'bg-yellow-500' : 
-                'bg-red-500'
-              }`}
+              className="h-full bg-purple-500"
               style={{ width: `${project.progress}%` }}
             />
           </div>

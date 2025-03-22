@@ -47,10 +47,10 @@ export default function UserProfile() {
   }
 
   const handleSignOut = async () => {
-    setIsLoggingOut(true);
+    // Close the menu first
     await signOut();
+    // Force navigation to login page after sign out
     router.push('/auth/login');
-    setIsLoggingOut(false);
   };
 
   const handleRefreshPage = () => {

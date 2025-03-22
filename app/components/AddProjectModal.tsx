@@ -54,10 +54,8 @@ type ProjectFormState = {
   owner: string;
   startDate: string;
   endDate: string;
-  risk: string;
   budget: string;
   spent: string;
-  stakeholders: string;
   allowedDepartments: Department[];
   kpis: {
     id: number;
@@ -85,10 +83,8 @@ const initialFormState: ProjectFormState = {
   owner: "",
   startDate: "",
   endDate: "",
-  risk: "Medium",
   budget: "",
   spent: "0",
-  stakeholders: "",
   allowedDepartments: [],
   kpis: [{ ...initialKpiState, id: Date.now() }],
   phases: [{ ...initialPhaseState, id: Date.now() + 1 }],
@@ -204,10 +200,9 @@ export default function AddProjectModal({
       startDate: formState.startDate,
       endDate: formState.endDate,
       progress: 0, // New projects start at 0%
-      risk: formState.risk,
       budget: parseFloat(formState.budget) || 0,
       spent: parseFloat(formState.spent) || 0,
-      stakeholders: formState.stakeholders.split(',').map(s => s.trim()),
+      stakeholders: [],
       allowedDepartments: formState.allowedDepartments as Department[],
       kpis: formState.kpis.map(kpi => ({
         ...kpi,
@@ -266,21 +261,23 @@ export default function AddProjectModal({
             </div>
             
             <div className="space-y-2 md:col-span-2">
-              <label className="text-sm font-medium">Description</label>
+              <label className="text-sm font-medium">Description *</label>
               <Textarea
                 name="description"
                 value={formState.description}
                 onChange={handleInputChange}
                 placeholder="Project description"
                 rows={3}
+                required
               />
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Status</label>
+              <label className="text-sm font-medium">Status *</label>
               <Select
                 value={formState.status}
                 onValueChange={(value) => handleSelectChange("status", value)}
+                required
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select status" />
@@ -295,10 +292,11 @@ export default function AddProjectModal({
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Priority</label>
+              <label className="text-sm font-medium">Priority *</label>
               <Select
                 value={formState.priority}
                 onValueChange={(value) => handleSelectChange("priority", value)}
+                required
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select priority" />
@@ -335,24 +333,7 @@ export default function AddProjectModal({
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Risk Level</label>
-              <Select
-                value={formState.risk}
-                onValueChange={(value) => handleSelectChange("risk", value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select risk level" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Low">Low</SelectItem>
-                  <SelectItem value="Medium">Medium</SelectItem>
-                  <SelectItem value="High">High</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Budget ($)</label>
+              <label className="text-sm font-medium">Budget ($) *</label>
               <Input
                 type="number"
                 name="budget"
@@ -360,16 +341,7 @@ export default function AddProjectModal({
                 onChange={handleInputChange}
                 placeholder="0.00"
                 min="0"
-              />
-            </div>
-
-            <div className="space-y-2 md:col-span-2">
-              <label className="text-sm font-medium">Stakeholders (comma-separated)</label>
-              <Input
-                name="stakeholders"
-                value={formState.stakeholders}
-                onChange={handleInputChange}
-                placeholder="e.g. IT, Finance, Marketing"
+                required
               />
             </div>
 
@@ -586,10 +558,11 @@ export default function AddProjectModal({
                       </div>
 
                       <div className="space-y-2">
-                        <label className="text-sm font-medium">Status</label>
+                        <label className="text-sm font-medium">Status *</label>
                         <Select
                           value={phase.status}
                           onValueChange={(value) => handlePhaseSelectChange(index, "status", value)}
+                          required
                         >
                           <SelectTrigger>
                             <SelectValue placeholder="Select status" />
@@ -603,13 +576,14 @@ export default function AddProjectModal({
                       </div>
 
                       <div className="space-y-2 md:col-span-2">
-                        <label className="text-sm font-medium">Description</label>
+                        <label className="text-sm font-medium">Description *</label>
                         <Textarea
                           name="description"
                           value={phase.description}
                           onChange={(e) => handlePhaseChange(index, e)}
                           placeholder="Phase description"
                           rows={2}
+                          required
                         />
                       </div>
 
@@ -637,7 +611,7 @@ export default function AddProjectModal({
 
                       {phase.status === "In Progress" && (
                         <div className="space-y-2 md:col-span-2">
-                          <label className="text-sm font-medium">Progress (%)</label>
+                          <label className="text-sm font-medium">Progress (%) *</label>
                           <Input
                             type="number"
                             name="progress"
@@ -645,6 +619,7 @@ export default function AddProjectModal({
                             onChange={(e) => handlePhaseChange(index, e)}
                             min="1"
                             max="99"
+                            required
                           />
                         </div>
                       )}

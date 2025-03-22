@@ -1,11 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import {
-  Sun,
-  Moon,
   MessageSquare,
   Mail,
   MessageCircle,
@@ -19,8 +16,6 @@ import {
   Layers,
   FileText,
   LogOut,
-  ChevronLeft,
-  ChevronRight,
   Box,
   Code,
   Cog,
@@ -28,21 +23,23 @@ import {
   FolderKanban,
   LineChart,
   Rocket,
+  BookOpen,
+  Brain,
 } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/AuthContext';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import Image from "next/image";
 
 export interface SidebarProps {
   className?: string;
 }
 
 export function Sidebar({ className }: SidebarProps) {
-  const { theme, setTheme } = useTheme();
-  const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
   const { user, isAdmin, signOut } = useAuth();
   const [userDepartment, setUserDepartment] = useState<string | null>(null);
   
@@ -78,35 +75,21 @@ export function Sidebar({ className }: SidebarProps) {
       icon: <LayoutDashboard className="h-5 w-5" />,
     },
     {
-      href: '/project',
-      title: 'Projects',
-      icon: <FolderKanban className="h-5 w-5" />,
-    },
-    {
-      href: '/reports',
-      title: 'Reports',
-      icon: <LineChart className="h-5 w-5" />,
-    },
-    {
-      href: '/stakeholders',
-      title: 'Stakeholders',
-      icon: <Users className="h-5 w-5" />,
-    },
-    {
-      href: '/documents',
-      title: 'Documents',
-      icon: <FileText className="h-5 w-5" />,
-    },
-    {
       href: '/chatbot',
       title: 'AI Assistant',
       icon: <MessageCircle className="h-5 w-5" />,
     },
     {
-      href: '/admin',
-      title: 'Admin Panel',
-      icon: <ShieldCheck className="h-5 w-5" />,
-      adminOnly: true,
+      href: '/quiz',
+      title: 'AI Skills Quiz',
+      icon: <Brain className="h-5 w-5" />,
+      adminHide: true,
+    },
+    {
+      href: '/resources',
+      title: 'Resources',
+      icon: <BookOpen className="h-5 w-5" />,
+      adminHide: true,
     },
     {
       href: '/settings',
@@ -114,41 +97,46 @@ export function Sidebar({ className }: SidebarProps) {
       icon: <Settings className="h-5 w-5" />,
     },
   ];
+  
+  // Admin-specific navigation items
+  const adminNavItems = [
+    {
+      href: '/admin/resources',
+      title: 'Resources',
+      icon: <BookOpen className="h-5 w-5" />,
+    }
+  ];
 
   const handleSignOut = async () => {
     await signOut();
+    // Force navigation to login page after sign out
+    router.push('/auth/login');
   };
 
   if (!user) return null;
 
   return (
     <div 
-      className={cn(
-        "bg-card border-r border-border h-screen transition-all duration-300 overflow-hidden relative",
-        collapsed ? "w-16" : "w-64"
-      )}
+      className="bg-card border-r border-border h-screen w-56 overflow-hidden relative"
     >
-      <div className="flex flex-col h-full py-4">
+      <div className="flex flex-col h-full py-2">
         {/* Header */}
-        <div className={cn(
-          "px-4 py-2 flex items-center", 
-          collapsed ? "justify-center" : "justify-between"
-        )}>
-          {!collapsed && <h1 className="font-semibold text-lg">Change Mgmt</h1>}
-          <Button 
-            variant="ghost" 
-            size="icon"
-            onClick={() => setCollapsed(!collapsed)}
-          >
-            {collapsed ? <ChevronRight /> : <ChevronLeft />}
-          </Button>
+        <div className="flex justify-center items-center">
+          <div className="relative h-44 w-44">
+            <Image
+              src="/images/METAMORPHOSIS.png"
+              alt="METAMORPHOSIS Logo"
+              fill
+              className="object-contain"
+              priority
+            />
+          </div>
         </div>
 
         {/* Navigation */}
-        <nav className="mt-6 flex-1 px-2">
+        <nav className="mt-4 flex-1 px-1">
           {navItems.map((item) => {
-            // Skip admin-only links if user is not an admin
-            if (item.adminOnly && !isAdmin) {
+            if (item.adminHide && isAdmin) {
               return null;
             }
 
@@ -159,58 +147,71 @@ export function Sidebar({ className }: SidebarProps) {
                 <Button
                   variant={isActive ? 'secondary' : 'ghost'}
                   className={cn(
-                    'w-full justify-start mb-1',
-                    collapsed ? 'px-2' : 'px-3',
+                    'w-full justify-start mb-3 px-2 py-1 h-auto',
                     isActive && 'bg-muted font-medium'
                   )}
                 >
                   {item.icon}
-                  {!collapsed && <span className="ml-3">{item.title}</span>}
+                  <span className="ml-2 text-sm">{item.title}</span>
                 </Button>
               </Link>
             );
           })}
+          
+          {/* Admin Section */}
+          {isAdmin && (
+            <>
+              <div className="mt-6 mb-2 px-2">
+                <h3 className="text-xs font-semibold text-muted-foreground">Admin</h3>
+              </div>
+              {adminNavItems.map((item) => {
+                const isActive = pathname === item.href || pathname?.startsWith(item.href + '/');
+                
+                return (
+                  <Link href={item.href} key={item.href}>
+                    <Button
+                      variant={isActive ? 'secondary' : 'ghost'}
+                      className={cn(
+                        'w-full justify-start mb-3 px-2 py-1 h-auto',
+                        isActive && 'bg-muted font-medium'
+                      )}
+                    >
+                      {item.icon}
+                      <span className="ml-2 text-sm">{item.title}</span>
+                    </Button>
+                  </Link>
+                );
+              })}
+            </>
+          )}
         </nav>
 
         {/* Footer */}
-        <div className="mt-auto px-2 border-t pt-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="mb-2"
-            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-          >
-            {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-          </Button>
-
+        <div className="mt-auto px-1 border-t pt-2">
           {user && (
             <div>
-              {!collapsed && (
-                <div className="px-2 py-2 text-xs text-muted-foreground mb-2">
-                  <div className="font-medium truncate">{user.email}</div>
-                  <div className="text-xs text-muted-foreground flex items-center gap-1.5 mt-1">
-                    <Badge variant="outline" className="text-xs">
-                      {getDepartmentName(userDepartment)}
+              <div className="px-1 py-1 text-xs text-muted-foreground mb-1">
+                <div className="font-medium truncate">{user.email}</div>
+                <div className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                  <Badge variant="outline" className="text-xs">
+                    {getDepartmentName(userDepartment)}
+                  </Badge>
+                  {isAdmin && (
+                    <Badge variant="secondary" className="text-xs">
+                      Admin
                     </Badge>
-                    {isAdmin && (
-                      <Badge variant="secondary" className="text-xs">
-                        Admin
-                      </Badge>
-                    )}
-                  </div>
+                  )}
                 </div>
-              )}
+              </div>
               
               <Button
                 variant="ghost"
-                className={cn(
-                  'w-full mb-2', 
-                  collapsed ? 'justify-center px-2' : 'justify-start px-3'
-                )}
+                size="sm"
+                className="w-full mb-1 justify-start px-2 py-1 h-8"
                 onClick={handleSignOut}
               >
-                <LogOut className="h-5 w-5" />
-                {!collapsed && <span className="ml-3">Sign out</span>}
+                <LogOut className="h-4 w-4" />
+                <span className="ml-2 text-xs">Sign out</span>
               </Button>
             </div>
           )}

@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <!-- Purple glow background -->
+  <defs>
+    <radialGradient id="purpleGlow" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+      <stop offset="0%" stop-color="#a855f7" stop-opacity="0.6" />
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+  
+  <!-- Glow background -->
+  <circle cx="100" cy="100" r="80" fill="url(#purpleGlow)" />
+  
+  <!-- Butterfly silhouette -->
+  <path d="M100,70 C110,60 125,65 130,75 C135,85 125,100 115,105 
+           C125,110 135,125 130,135 C125,145 110,150 100,140
+           C90,150 75,145 70,135 C65,125 75,110 85,105
+           C75,100 65,85 70,75 C75,65 90,60 100,70Z" 
+           fill="black" />
+  
+  <!-- Antenna -->
+  <path d="M95,75 L90,65 M105,75 L110,65" stroke="black" stroke-width="1.5" fill="none" />
+</svg> 

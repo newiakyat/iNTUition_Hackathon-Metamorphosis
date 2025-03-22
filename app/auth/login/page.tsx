@@ -152,12 +152,6 @@ export default function LoginPage() {
               {isLoading ? 'Signing in...' : 'Demo Login (Admin)'}
             </Button>
           </div>
-          
-          {/* Debug information */}
-          <div className="mt-4 text-xs text-muted-foreground p-2 border rounded">
-            <p>Auth loading: {authLoading ? 'Yes' : 'No'}</p>
-            <p>User: {user ? user.email : 'Not logged in'}</p>
-          </div>
         </CardContent>
         <CardFooter>
           <div className="text-center text-sm w-full">

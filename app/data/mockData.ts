@@ -1,4 +1,5 @@
 import { Department } from '@/lib/AuthContext';
+import { supabase } from '@/lib/supabase';
 
 export let projects = [
   {
@@ -321,4 +322,140 @@ export const addProject = (project: any) => {
   projects = [...projects, newProject];
   
   return projects;
+};
+
+// Project announcements data
+// This is now kept for backward compatibility and initial data loading
+let projectAnnouncements: any[] = [
+  {
+    id: '1',
+    project_id: 1,
+    title: 'Cloud Migration Kickoff',
+    content: 'We are officially starting the cloud migration project next week. All stakeholders please prepare for the kickoff meeting.',
+    created_by: 'Admin',
+    created_at: '2024-05-10T10:00:00Z',
+  },
+  {
+    id: '2',
+    project_id: 2,
+    title: 'ERP Implementation Update',
+    content: 'The vendor selection phase is almost complete. We will be announcing the chosen vendor next month.',
+    created_by: 'Admin',
+    created_at: '2024-05-12T14:30:00Z',
+  }
+];
+
+// Function to get announcements for a specific project
+export const getProjectAnnouncements = async (projectId: number) => {
+  console.log('mockData: getProjectAnnouncements called for project', projectId);
+  
+  try {
+    // Log Supabase URL and key availability (without exposing actual values)
+    console.log('Supabase URL available:', !!process.env.NEXT_PUBLIC_SUPABASE_URL);
+    console.log('Supabase Anon Key available:', !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+    
+    console.log('Attempting to fetch announcements from Supabase...');
+    // Get announcements from Supabase
+    const { data, error } = await supabase
+      .from('project_announcements')
+      .select('*')
+      .eq('project_id', projectId)
+      .order('created_at', { ascending: false });
+    
+    if (error) {
+      console.error('Error fetching announcements from Supabase:', error);
+      console.error('Error details:', JSON.stringify(error, null, 2));
+      
+      // Fallback to mock data if Supabase fails
+      console.log('Falling back to mock data');
+      const filteredAnnouncements = projectAnnouncements.filter(announcement => 
+        announcement.project_id === projectId
+      );
+      console.log('Returning filtered mock announcements:', filteredAnnouncements);
+      return filteredAnnouncements;
+    }
+    
+    console.log('Supabase returned announcements:', data);
+    
+    // Check if we have data in Supabase but also have mock data for the same project
+    // Combine them to ensure no announcements are lost during migration
+    if (data && data.length > 0) {
+      return data;
+    } else {
+      // If no data in Supabase, check if we have mock data for this project
+      const filteredMockAnnouncements = projectAnnouncements.filter(announcement => 
+        announcement.project_id === projectId
+      );
+      
+      if (filteredMockAnnouncements.length > 0) {
+        console.log('No data in Supabase, returning mock announcements:', filteredMockAnnouncements);
+        return filteredMockAnnouncements;
+      }
+      
+      return [];
+    }
+  } catch (error) {
+    console.error('Exception when fetching announcements:', error);
+    // Fallback to mock data
+    const filteredAnnouncements = projectAnnouncements.filter(announcement => 
+      announcement.project_id === projectId
+    );
+    console.log('Error occurred, returning filtered mock announcements:', filteredAnnouncements);
+    return filteredAnnouncements;
+  }
+};
+
+// Function to add a new announcement
+export const addProjectAnnouncement = async (announcement: any) => {
+  console.log('mockData: addProjectAnnouncement called with', announcement);
+  
+  try {
+    // Log Supabase URL and key availability (without exposing actual values)
+    console.log('Supabase URL available:', !!process.env.NEXT_PUBLIC_SUPABASE_URL);
+    console.log('Supabase Anon Key available:', !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+    
+    // Add announcement to Supabase
+    console.log('Attempting to insert announcement into Supabase...');
+    const { data, error } = await supabase
+      .from('project_announcements')
+      .insert({
+        project_id: announcement.project_id,
+        title: announcement.title,
+        content: announcement.content,
+        created_by: announcement.created_by,
+        created_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Error adding announcement to Supabase:', error);
+      console.error('Error details:', JSON.stringify(error, null, 2));
+      
+      // Add to local mock data as fallback
+      console.log('Falling back to mock data');
+      const newAnnouncement = {
+        id: Date.now().toString(),
+        ...announcement
+      };
+      projectAnnouncements = [newAnnouncement, ...projectAnnouncements];
+      return newAnnouncement;
+    }
+    
+    console.log('Announcement successfully added to Supabase:', data);
+    
+    // Also add to local mock data for immediate availability
+    projectAnnouncements = [data, ...projectAnnouncements];
+    return data;
+  } catch (error) {
+    console.error('Exception when adding announcement:', error);
+    
+    // Fallback to mock data
+    const newAnnouncement = {
+      id: Date.now().toString(),
+      ...announcement
+    };
+    projectAnnouncements = [newAnnouncement, ...projectAnnouncements];
+    return newAnnouncement;
+  }
 }; 

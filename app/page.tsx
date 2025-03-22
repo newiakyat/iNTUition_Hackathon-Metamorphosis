@@ -96,9 +96,11 @@ export default function Dashboard() {
               <Button variant="outline" size="icon" onClick={handleRefresh} title="Refresh projects">
                 <RefreshCw className="h-4 w-4" />
               </Button>
-              <Button onClick={() => setIsAddModalOpen(true)}>
-                New Project
-              </Button>
+              {isAdmin && (
+                <Button onClick={() => setIsAddModalOpen(true)}>
+                  New Project
+                </Button>
+              )}
               <UserProfile />
             </div>
           </div>

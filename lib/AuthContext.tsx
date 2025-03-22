@@ -301,6 +301,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       // Handle error silently
     }
     
+    // Explicitly redirect to the login page
+    router.push('/auth/login');
     router.refresh();
     setIsLoading(false);
   };
