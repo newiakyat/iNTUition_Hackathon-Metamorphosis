@@ -40,6 +40,7 @@ venv/
 ENV/
 env/
 .env/
+ieee_venv/
 .python-version
 __pycache__/
 *.py[cod]
