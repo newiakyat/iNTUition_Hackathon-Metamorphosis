@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Calendar, User, Flag, AlertTriangle, DollarSign, Users, TrendingUp, TrendingDown, Megaphone } from "lucide-react";
+import { ArrowLeft, Calendar, User, Flag, AlertTriangle, DollarSign, Users, TrendingUp, TrendingDown, Megaphone, FileWarning } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -15,11 +15,14 @@ import FeedbackForm from '@/components/FeedbackForm';
 import FeedbackHistory from '@/components/FeedbackHistory';
 import { AnnouncementModal } from '@/components/AnnouncementModal';
 import ProjectAnnouncements from '@/components/ProjectAnnouncements';
+import { RiskReportModal } from '@/components/RiskReportModal';
+import SavedRiskReports from '@/components/SavedRiskReports';
 
 export default function ProjectDetail({ params }: { params: { id: string } }) {
   const [project, setProject] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isAnnouncementModalOpen, setIsAnnouncementModalOpen] = useState(false);
+  const [isRiskReportModalOpen, setIsRiskReportModalOpen] = useState(false);
   const [announcementRefreshKey, setAnnouncementRefreshKey] = useState(0);
   const router = useRouter();
   const { user, isAdmin } = useAuth();
@@ -60,6 +63,19 @@ export default function ProjectDetail({ params }: { params: { id: string } }) {
     setAnnouncementRefreshKey(prev => prev + 1);
   };
 
+  // Handle closing the risk report modal
+  const handleCloseRiskReportModal = () => {
+    setIsRiskReportModalOpen(false);
+  };
+
+  // Function to handle opening the risk report modal
+  const handleOpenRiskReportModal = () => {
+    if (!isAdmin) {
+      return; // Early return if not admin
+    }
+    setIsRiskReportModalOpen(true);
+  };
+
   if (loading) {
     return <div className="p-8 flex justify-center">Loading...</div>;
   }
@@ -93,15 +109,27 @@ export default function ProjectDetail({ params }: { params: { id: string } }) {
               <ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard
             </Button>
             
-            {isAdmin && (
-              <Button
-                onClick={() => setIsAnnouncementModalOpen(true)}
-                className="bg-purple-600 hover:bg-purple-700"
-              >
-                <Megaphone className="mr-2 h-4 w-4" />
-                Announcement
-              </Button>
-            )}
+            <div className="flex space-x-2">
+              {isAdmin && (
+                <>
+                  <Button
+                    onClick={() => setIsAnnouncementModalOpen(true)}
+                    className="bg-purple-600 hover:bg-purple-700"
+                  >
+                    <Megaphone className="mr-2 h-4 w-4" />
+                    Announcement
+                  </Button>
+                  
+                  <Button
+                    onClick={handleOpenRiskReportModal}
+                    className="bg-amber-600 hover:bg-amber-700"
+                  >
+                    <FileWarning className="mr-2 h-4 w-4" />
+                    Generate Risk Report
+                  </Button>
+                </>
+              )}
+            </div>
           </div>
 
           <div className="mb-8">
@@ -130,6 +158,9 @@ export default function ProjectDetail({ params }: { params: { id: string } }) {
             projectId={projectId} 
             key={`announcements-${projectId}-${announcementRefreshKey}`} 
           />
+          
+          {/* Saved Risk Reports Section - Only visible to admins */}
+          {isAdmin && <SavedRiskReports projectId={projectId} />}
 
           {/* Project KPIs - Only visible to admins */}
           {isAdmin && project.kpis && project.kpis.length > 0 && (
@@ -295,17 +326,23 @@ export default function ProjectDetail({ params }: { params: { id: string } }) {
           )}
           
           {/* Feedback history - only visible to admins */}
-          <FeedbackHistory projectId={projectId} />
+          {isAdmin && <FeedbackHistory projectId={projectId} />}
         </div>
       </div>
 
-      {/* Announcement Modal */}
       <AnnouncementModal
         projectId={projectId}
         isOpen={isAnnouncementModalOpen}
         onClose={handleCloseAnnouncementModal}
-        key={`announcement-modal-${projectId}`}
       />
+
+      {isAdmin && (
+        <RiskReportModal
+          projectId={projectId}
+          isOpen={isRiskReportModalOpen}
+          onClose={handleCloseRiskReportModal}
+        />
+      )}
     </ProtectedRoute>
   );
 } 
