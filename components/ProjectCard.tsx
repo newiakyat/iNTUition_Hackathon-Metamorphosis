@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -27,6 +28,12 @@ type ProjectProps = {
 export function ProjectCard({ project }: ProjectProps) {
   const router = useRouter();
   const { user, isAdmin } = useAuth();
+  const [canAccess, setCanAccess] = useState(false);
+  
+  // Update access whenever user's department or admin status changes
+  useEffect(() => {
+    setCanAccess(checkAccess());
+  }, [user, isAdmin, user?.department, project.allowedDepartments]);
 
   // Function to get badge color based on status
   const getStatusBadgeVariant = (status: string) => {
@@ -43,7 +50,7 @@ export function ProjectCard({ project }: ProjectProps) {
   };
 
   // Check if user has access to this project
-  const hasAccess = () => {
+  const checkAccess = () => {
     // Admin always has access
     if (isAdmin) return true;
     
@@ -57,18 +64,34 @@ export function ProjectCard({ project }: ProjectProps) {
   };
 
   const handleClick = () => {
-    if (hasAccess()) {
+    if (canAccess) {
       router.push(`/project/${project.id}`);
-    } else {
-      // Could show a toast or notification here
-      console.log('Access denied to project:', project.title);
     }
+  };
+  
+  // Create human-readable department names for display
+  const getDepartmentNames = (departments: Department[]) => {
+    if (!departments || departments.length === 0) return "All departments";
+    
+    const departmentMap: Record<Department, string> = {
+      'engineering': 'Engineering',
+      'marketing': 'Marketing',
+      'finance': 'Finance',
+      'hr': 'HR',
+      'sales': 'Sales',
+      'operations': 'Operations'
+    };
+    
+    const names = departments.map(dept => departmentMap[dept] || dept);
+    return names.length > 3 
+      ? `${names.slice(0, 2).join(', ')}...` 
+      : names.join(', ');
   };
 
   return (
     <Card 
       className={`overflow-hidden transition-shadow cursor-pointer ${
-        hasAccess() ? 'hover:shadow-md' : 'opacity-75 hover:cursor-not-allowed'
+        canAccess ? 'hover:shadow-md' : 'opacity-75 hover:cursor-not-allowed'
       }`} 
       onClick={handleClick}
     >
@@ -77,7 +100,7 @@ export function ProjectCard({ project }: ProjectProps) {
           <div className="flex justify-between items-start mb-2">
             <div className="flex items-center gap-2">
               <h3 className="font-semibold text-lg line-clamp-1">{project.title}</h3>
-              {!hasAccess() && <Lock className="h-4 w-4 text-muted-foreground" />}
+              {!canAccess && <Lock className="h-4 w-4 text-muted-foreground" />}
               {isAdmin && project.allowedDepartments && project.allowedDepartments.length > 0 && (
                 <Shield className="h-4 w-4 text-muted-foreground" title="Restricted access" />
               )}
@@ -113,9 +136,7 @@ export function ProjectCard({ project }: ProjectProps) {
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Access:</span>
                 <span className="text-xs">
-                  {project.allowedDepartments.length > 3 
-                    ? `${project.allowedDepartments.slice(0, 2).join(', ')}...` 
-                    : project.allowedDepartments.join(', ')}
+                  {getDepartmentNames(project.allowedDepartments)}
                 </span>
               </div>
             )}
@@ -136,11 +157,11 @@ export function ProjectCard({ project }: ProjectProps) {
         
         <div className="px-6 py-3 bg-muted/30 border-t flex justify-end">
           <Button 
-            variant={hasAccess() ? "outline" : "ghost"} 
+            variant={canAccess ? "outline" : "ghost"} 
             size="sm"
-            disabled={!hasAccess()}
+            disabled={!canAccess}
           >
-            {hasAccess() ? "View Details" : "No Access"}
+            {canAccess ? "View Details" : "No Access"}
           </Button>
         </div>
       </CardContent>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,6 +21,13 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
+  Box,
+  Code,
+  Cog,
+  FileX,
+  FolderKanban,
+  LineChart,
+  Rocket,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from 'next/navigation';
@@ -28,11 +35,40 @@ import { useAuth } from '@/lib/AuthContext';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 
-export function Sidebar() {
+export interface SidebarProps {
+  className?: string;
+}
+
+export function Sidebar({ className }: SidebarProps) {
   const { theme, setTheme } = useTheme();
   const [collapsed, setCollapsed] = useState(false);
   const pathname = usePathname();
   const { user, isAdmin, signOut } = useAuth();
+  const [userDepartment, setUserDepartment] = useState<string | null>(null);
+  
+  useEffect(() => {
+    if (user && user.department) {
+      setUserDepartment(user.department);
+    }
+  }, [user, user?.department]);
+
+  // Function to get department name from code
+  const getDepartmentName = (code: string | null) => {
+    if (!code) return "Not assigned";
+    
+    switch (code) {
+      case "engineering":
+        return "Engineering";
+      case "marketing":
+        return "Marketing";
+      case "finance":
+        return "Finance";
+      case "hr":
+        return "Human Resources";
+      default:
+        return code.charAt(0).toUpperCase() + code.slice(1);
+    }
+  };
 
   // Define navigation items
   const navItems = [
@@ -44,12 +80,12 @@ export function Sidebar() {
     {
       href: '/project',
       title: 'Projects',
-      icon: <Layers className="h-5 w-5" />,
+      icon: <FolderKanban className="h-5 w-5" />,
     },
     {
       href: '/reports',
       title: 'Reports',
-      icon: <BarChart3 className="h-5 w-5" />,
+      icon: <LineChart className="h-5 w-5" />,
     },
     {
       href: '/stakeholders',
@@ -147,11 +183,16 @@ export function Sidebar() {
               {!collapsed && (
                 <div className="px-2 py-2 text-xs text-muted-foreground mb-2">
                   <div className="font-medium truncate">{user.email}</div>
-                  {isAdmin && (
-                    <Badge variant="default" className="mt-1 text-[10px]">
-                      Admin
+                  <div className="text-xs text-muted-foreground flex items-center gap-1.5 mt-1">
+                    <Badge variant="outline" className="text-xs">
+                      {getDepartmentName(userDepartment)}
                     </Badge>
-                  )}
+                    {isAdmin && (
+                      <Badge variant="secondary" className="text-xs">
+                        Admin
+                      </Badge>
+                    )}
+                  </div>
                 </div>
               )}
               
@@ -171,5 +212,26 @@ export function Sidebar() {
         </div>
       </div>
     </div>
+  );
+}
+
+interface NavItemProps {
+  href: string;
+  icon: React.ReactNode;
+  active?: boolean;
+  children: React.ReactNode;
+}
+
+function NavItem({ href, icon, active, children }: NavItemProps) {
+  return (
+    <Link
+      href={href}
+      className={`flex items-center p-2 text-sm rounded-md ${
+        active ? "bg-primary/10 text-primary font-medium" : "text-muted-foreground hover:bg-muted"
+      }`}
+    >
+      {icon}
+      {children}
+    </Link>
   );
 }

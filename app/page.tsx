@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
-import { Search, TrendingUp, TrendingDown, Plus, ChevronRight, ChevronDown, Shield } from "lucide-react";
+import { Search, TrendingUp, TrendingDown, Plus, ChevronRight, ChevronDown, Shield, RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
@@ -23,17 +23,24 @@ export default function Dashboard() {
   const [projectList, setProjectList] = useState(projects);
   const [expandedProject, setExpandedProject] = useState<number | null>(null);
   const [showUserProfile, setShowUserProfile] = useState(false);
+  const [accessibleProjects, setAccessibleProjects] = useState<typeof projects>([]);
   const router = useRouter();
   const { user, isAdmin, isLoading } = useAuth();
   
-  // Add logging for debugging
+  // Update projects when user data changes
   useEffect(() => {
-    console.log("Dashboard auth state:", { user, isAdmin, isLoading });
-  }, [user, isAdmin, isLoading]);
-
-  // Filter projects based on access permissions and search query
-  const getAccessibleProjects = () => {
-    return projectList.filter(project => {
+    // Every time user data changes, update the accessible projects
+    if (user) {
+      updateAccessibleProjects();
+      
+      // Update document title
+      document.title = "IEEE Dashboard";
+    }
+  }, [user, isAdmin, isLoading, user?.department]);
+  
+  // Update the list of accessible projects
+  const updateAccessibleProjects = () => {
+    const filtered = projectList.filter(project => {
       // Check if user has access to this project
       const hasAccess = isAdmin || 
         !project.allowedDepartments || 
@@ -43,9 +50,12 @@ export default function Dashboard() {
       // Only include projects the user has access to
       return hasAccess;
     });
+    
+    setAccessibleProjects(filtered);
   };
 
-  const filteredProjects = getAccessibleProjects().filter(project => 
+  // Filter projects based on search query from the already filtered accessible projects
+  const filteredProjects = accessibleProjects.filter(project => 
     project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     project.description.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -53,11 +63,16 @@ export default function Dashboard() {
   const handleAddProject = (newProject: any) => {
     const updatedProjects = addProject(newProject);
     setProjectList(updatedProjects);
+    updateAccessibleProjects(); // Update accessible projects after adding a new one
   };
 
   const toggleExpandProject = (projectId: number, e: React.MouseEvent) => {
     e.stopPropagation();
     setExpandedProject(expandedProject === projectId ? null : projectId);
+  };
+  
+  const handleRefresh = () => {
+    updateAccessibleProjects();
   };
 
   return (
@@ -78,6 +93,9 @@ export default function Dashboard() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
+              <Button variant="outline" size="icon" onClick={handleRefresh} title="Refresh projects">
+                <RefreshCw className="h-4 w-4" />
+              </Button>
               <Button onClick={() => setIsAddModalOpen(true)}>
                 New Project
               </Button>
@@ -94,6 +112,12 @@ export default function Dashboard() {
                   <span>Admin view - showing all projects</span>
                 </div>
               )}
+              {!isAdmin && user?.department && (
+                <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                  <Badge variant="outline" className="text-xs">{user.department}</Badge>
+                  <span>Showing department-specific projects</span>
+                </div>
+              )}
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredProjects.map((project) => (
@@ -101,7 +125,10 @@ export default function Dashboard() {
               ))}
               {filteredProjects.length === 0 && (
                 <div className="col-span-full text-center py-12 text-muted-foreground">
-                  No projects found matching your search criteria.
+                  {searchQuery ? 
+                    "No projects found matching your search criteria." :
+                    "No projects available for your department. Contact an admin for assistance."
+                  }
                 </div>
               )}
             </div>

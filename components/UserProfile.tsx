@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/lib/AuthContext';
+import { useAuth, Department } from '@/lib/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { LogOut, User, ChevronDown, Briefcase } from 'lucide-react';
+import { LogOut, User, ChevronDown, Briefcase, RefreshCw } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,7 +31,16 @@ const departmentNames = {
 export default function UserProfile() {
   const { user, isAdmin, signOut } = useAuth();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [currentDepartment, setCurrentDepartment] = useState<Department | undefined>(user?.department);
   const router = useRouter();
+
+  // Update local state when user data changes
+  useEffect(() => {
+    if (user?.department) {
+      console.log("UserProfile: User department updated:", user.department);
+      setCurrentDepartment(user.department);
+    }
+  }, [user, user?.department]);
 
   if (!user) {
     return null;
@@ -44,6 +53,10 @@ export default function UserProfile() {
     setIsLoggingOut(false);
   };
 
+  const handleRefreshPage = () => {
+    router.refresh();
+  };
+
   // Get the user's initials for the avatar
   const getInitials = () => {
     const email = user.email || '';
@@ -52,7 +65,7 @@ export default function UserProfile() {
 
   // Get department full name
   const getDepartmentName = () => {
-    return user.department ? departmentNames[user.department] : 'No Department';
+    return currentDepartment ? departmentNames[currentDepartment] : 'No Department';
   };
 
   return (
@@ -82,6 +95,13 @@ export default function UserProfile() {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        <DropdownMenuItem 
+          onClick={handleRefreshPage}
+          className="cursor-pointer"
+        >
+          <RefreshCw className="mr-2 h-4 w-4" />
+          <span>Refresh</span>
+        </DropdownMenuItem>
         <DropdownMenuItem 
           onClick={handleSignOut}
           disabled={isLoggingOut}

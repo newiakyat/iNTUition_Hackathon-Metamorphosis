@@ -45,8 +45,10 @@ export default function SettingsPage() {
   // Update selectedDepartment when user data changes
   useEffect(() => {
     if (user?.department) {
-      console.log("User department loaded:", user.department);
       setSelectedDepartment(user.department);
+      
+      // Update document title
+      document.title = `IEEE Settings`;
     }
   }, [user]);
 
@@ -66,27 +68,29 @@ export default function SettingsPage() {
       return;
     }
     
-    console.log(`Attempting to update department from ${user.department} to ${selectedDepartment}`);
     setIsSaving(true);
     try {
       const result = await updateUserDepartment(selectedDepartment);
       if (result.error) {
-        console.error("Error updating department:", result.error);
         toast({
           title: "Update Failed",
           description: `Failed to update department: ${result.error}`,
           variant: "destructive",
         });
       } else {
-        console.log("Department updated successfully");
         toast({
           title: "Success",
           description: `Your department has been updated to ${departmentNames[selectedDepartment]}.`,
         });
+        
+        // Add a short delay before navigating back to ensure state is updated
+        setTimeout(() => {
+          // Navigate back to the dashboard
+          router.push('/');
+        }, 1500);
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Unknown error";
-      console.error("Exception during update:", errorMessage);
       toast({
         title: "Error",
         description: `An unexpected error occurred: ${errorMessage}`,
