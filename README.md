@@ -1,6 +1,6 @@
 <div align="center">
   
-# <img src="public/images/metamorphosis-logo.svg" alt="Metamorphosis Logo" width="40" height="40" /> Metamorphosis
+# <img src="public/images/METAMORPHOSIS.png" alt="Metamorphosis Logo" width="40" height="40" /> Metamorphosis
 
 **A Modern Change Management Dashboard**
 
