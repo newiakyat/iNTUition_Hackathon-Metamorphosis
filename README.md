@@ -20,10 +20,10 @@ Metamorphosis is a comprehensive change management dashboard designed to help or
 
 ## ✨ Key Features
 
-- **Project Management Dashboard**: Track and manage organizational change initiatives
+- **Change Management Dashboard**: Track and manage organizational change initiatives
 - **RAG-powered AI Chatbot**: Get intelligent answers to change management questions
 - **Department-specific Views**: Tailored experience for each organizational department
-- **Risk Assessment Tool**: Identify and mitigate potential project risks
+- **AI-powered Risk Assessment Tool**: Identify and mitigate potential project risks
 - **Feedback System**: Collect and analyze stakeholder feedback
 - **Resource Library**: Access change management resources and documentation
 - **Admin Controls**: Manage users, projects, and announcements
@@ -63,17 +63,22 @@ Metamorphosis follows a modern, scalable architecture:
 1. **Next.js Frontend**: Server and client components with optimized rendering
 2. **Supabase Backend**: PostgreSQL database with real-time subscriptions
 3. **DeepSeek AI Layer**: RAG (Retrieval-Augmented Generation) system for context-aware responses
-4. **API Services**: RESTful endpoints for data exchange between frontend and AI services
+4. **API Services**: Utilizing FASTAPI for building high-performance, asynchronous RESTful endpoints that facilitate seamless data exchange between the frontend and AI services. FASTAPI leverages Python type hints for automatic API documentation and validation, ensuring a robust and maintainable API structure.
 
 ## 📱 Features in Detail
 
-### AI-Powered Chatbot
-The system integrates multiple AI models to provide contextual support for change management challenges:
+### RAG-Powered AI Chatbot
+The system leverages Retrieval-Augmented Generation (RAG) technology, which combines the strengths of retrieval-based models and generative models to provide highly contextual and accurate support for change management challenges. RAG's benefits include:
+- Enhanced contextual understanding through the retrieval of relevant information
+- Generation of responses that are both informative and engaging
+- Ability to handle complex, open-ended questions with ease
+- Continuous learning and improvement through user interactions
 - Retrieval-Augmented Generation for accurate, context-aware responses
 - Document analysis for extracting insights from uploaded materials
-- Change planning assistant for strategic guidance
+- Change planning assistant for strategic guidance for Admins and Change management assistant for Employees
+- Customisable knowledge base for Employees and Admins
 
-### Risk Assessment Tool
+### AI-Powered Risk Assessment Tool
 Generate comprehensive risk reports with:
 - Automated risk identification based on project parameters
 - Mitigation strategy recommendations
